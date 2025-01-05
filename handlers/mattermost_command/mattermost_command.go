@@ -4,9 +4,11 @@ import (
 	"peng-front/config"
 	"peng-front/models"
 	"peng-front/services"
+	"peng-front/utils"
+
+	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"net/http"
 
 	"fmt"
 )
@@ -22,8 +24,18 @@ func NewMattermostCommand(config *config.MattermostConfig) *gin.Engine {
 }
 
 func handler_command(c *gin.Context) {
+	var requestBody map[string]interface{}
+	if err := c.BindJSON(&requestBody); err != nil {
+		c.JSON(http.StatusBadRequest, models.CommandResponse{
+			ResponseType: "ephemeral",
+			Text:         "Invalid request",
+		})
+		return
+	}
+	utils.LogMessage(utils.DEBUG, fmt.Sprintf("Request body: %v", requestBody))
+
 	var command models.CommandRequest
-	if err := c.ShouldBindJSON(&command); err != nil {
+	if err := c.BindJSON(&command); err != nil {
 		c.JSON(http.StatusBadRequest, models.CommandResponse{
 			ResponseType: "ephemeral",
 			Text:         "Invalid request",
