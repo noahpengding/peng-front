@@ -29,6 +29,7 @@ func handler_command(c *gin.Context) {
 			ResponseType: "ephemeral",
 			Text:         "Invalid request",
 		})
+		return
 	}
 
 	if !authentication(c.GetHeader("Authorization")) {
@@ -36,6 +37,7 @@ func handler_command(c *gin.Context) {
 			ResponseType: "ephemeral",
 			Text:         fmt.Sprintf("Unauthorized: %s", c.GetHeader("Authorization")),
 		})
+		return
 	}
 
 	if command.Command == "/peng" {

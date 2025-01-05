@@ -3,7 +3,6 @@ FROM golang:1.23.4-alpine AS builder
 WORKDIR /app
 COPY . /app
 RUN gofmt -l .
-RUN go get -u -v
 RUN go build -o peng-front -v .
 
 FROM alpine:3.21
