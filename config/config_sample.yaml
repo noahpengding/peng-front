@@ -1,0 +1,15 @@
+rabbitmq:
+  url: "amqp://user:password@rabbitmq-server:5672/"
+  queue_name: "example_queue"
+  exchange_name: "exchange_name"
+  topic: "example_topic"
+
+mattermost:
+  url: "https://your-mattermost-url.com"
+  token: "your-mattermost-access-token"
+  channel_id: "your-channel-id"
+  team_id: "your-team-id"
+
+
+server:
+  port: 8080

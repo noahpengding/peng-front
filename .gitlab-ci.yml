@@ -1,0 +1,27 @@
+stages:
+  - build
+
+test-build:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  variables:
+    IMAGE_TAG: $REGISTRY_URL/peng-bot/peng-front
+  script:
+    - echo "{\"auths\":{\"$REGISTRY_URL\":{\"username\":\"$REGISTRY_USER\",\"password\":\"$REGISTRY_PASS\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile Dockerfile --destination $IMAGE_TAG:test
+
+prod-build:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  variables:
+    IMAGE_TAG: $REGISTRY_URL/peng-bot/peng-front
+  script:
+    - echo "{\"auths\":{\"$REGISTRY_URL\":{\"username\":\"$REGISTRY_USER\",\"password\":\"$REGISTRY_PASS\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile Dockerfile --destination $IMAGE_TAG:${CI_COMMIT_SHA} --destination $IMAGE_TAG:latest
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "main"
