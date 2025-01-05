@@ -5,8 +5,6 @@ import (
     "peng-front/config"
     "peng-front/handlers/rabbitmq_consumer"
     "peng-front/handlers/mattermost_command"
-
-    "os"
     "fmt"
 )
 
