@@ -1,11 +1,19 @@
 package main
 
 import (
+<<<<<<< HEAD
 	"fmt"
 	"peng-front/config"
 	"peng-front/handlers/mattermost_command"
 	"peng-front/handlers/rabbitmq_consumer"
 	"peng-front/utils"
+=======
+    "log"
+    "peng-front/config"
+    "peng-front/handlers/rabbitmq_consumer"
+    "peng-front/handlers/mattermost_command"
+    "fmt"
+>>>>>>> origin/main
 )
 
 func main() {
