@@ -19,6 +19,7 @@ test/*
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+peng-front*
 
 # Dependency directories (remove the comment below to include it)
 # vendor/

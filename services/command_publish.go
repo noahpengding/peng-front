@@ -4,11 +4,12 @@ import (
 	"peng-front/config"
 	"peng-front/handlers/rabbitmq_publisher"
 	"peng-front/models"
+	"peng-front/utils"
 
 	"github.com/google/uuid"
 
-	"strings"
 	"fmt"
+	"strings"
 )
 
 func CommandPublish(request *models.CommandRequest) error {
@@ -23,9 +24,9 @@ func CommandPublish(request *models.CommandRequest) error {
 	if command[0] == "output" {
 		topic = "output"
 		message = &models.Message{
-			ID:     uuid.New().String(),
-			Topic:  topic,
-			Data:   outputCommand(command[1:]),
+			ID:      uuid.New().String(),
+			Topic:   topic,
+			Data:    outputCommand(command[1:]),
 			Channel: request.Channel,
 			Team:    request.Team,
 		}
@@ -34,9 +35,9 @@ func CommandPublish(request *models.CommandRequest) error {
 	if topic == "" || message == nil {
 		topic = "output"
 		message = &models.Message{
-			ID:     uuid.New().String(),
-			Topic:  topic,
-			Data:   fmt.Sprintf("Invalid command: %s", request.Text),
+			ID:      uuid.New().String(),
+			Topic:   topic,
+			Data:    fmt.Sprintf("Invalid command: %s", request.Text),
 			Channel: cfg.Mattermost.Channel,
 			Team:    cfg.Mattermost.Team,
 		}
@@ -45,7 +46,7 @@ func CommandPublish(request *models.CommandRequest) error {
 	r := rabbitmq_publisher.NewRabbitMQClient(&cfg.RabbitMQ)
 	defer r.Close()
 	if err := r.PublishMessage(topic, message); err != nil {
-		fmt.Println(err)
+		utils.LogMessage(utils.WARN, fmt.Sprintf("Failed to publish message: %v", err))
 	}
 	return nil
 }
