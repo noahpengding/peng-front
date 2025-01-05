@@ -1,0 +1,5 @@
+schema-version: v1
+rulesets:
+  - docker-best-practices
+  - go-best-practices
+  - go-security
