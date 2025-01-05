@@ -1,11 +1,11 @@
 package models
 
 type CommandRequest struct {
-	Team    string `json:"team_domain"`
-	Channel string `json:"channel_name"`
-	User  string `json:"user_name"`
-	Command   string `json:"command"`
-	Text      string `json:"text"`
+	Team    string `form:"team_domain" json:"team_domain"`
+	Channel string `form:"channel_name" json:"channel_name"`
+	User    string `form:"user_name" json:"user_name"`
+	Command string `form:"command" json:"command" binding:"required"`
+	Text    string `form:"text" json:"text"`
 }
 
 type CommandResponse struct {
