@@ -1,13 +1,11 @@
 stages:
   - build
-  - release
 
 variables:
-  APP_VERSION: 1.0
+  APP_VERSION: 1.0.1
   IMAGE_TAG: $REGISTRY_URL/peng-bot/peng-front
 
 before_script:
-  - mkdir -p /kaniko/.docker
   - echo "{\"auths\":{\"$REGISTRY_URL\":{\"username\":\"$REGISTRY_USER\",\"password\":\"$REGISTRY_PASS\"}}}" > /kaniko/.docker/config.json
 
 test-build:
@@ -15,6 +13,8 @@ test-build:
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
+  tags:
+    - kubernetes
   script:
     - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile Dockerfile --destination $IMAGE_TAG:test
 
@@ -23,13 +23,10 @@ prod-build:
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
+  tags:
+    - kubernetes
   script:
-    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile Dockerfile \
-      --destination $IMAGE_TAG:$APP_VERSION --destination $IMAGE_TAG:latest \
-      --build-arg opts="CGO_ENABLED=0 GOARCH=amd64"
-    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile Dockerfile \
-      --destination $IMAGE_TAG:$APP_VERSION --destination $IMAGE_TAG:latest \
-      --build-arg opts="CGO_ENABLED=0 GOARCH=arm64"
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile Dockerfile --destination $IMAGE_TAG:$APP_VERSION --destination $IMAGE_TAG:latest
   only:
     variables:
       - $CI_COMMIT_BRANCH == "main"
