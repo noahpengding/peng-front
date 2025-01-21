@@ -8,9 +8,16 @@ import (
 
 	"github.com/google/uuid"
 
+	"encoding/json"
 	"fmt"
 	"strings"
 )
+
+type Homelabcommand struct {
+	Type    string      `json:"type" binding:"required"`
+	Message interface{} `json:"message" binding:"required"`
+	App     interface{} `json:"app"`
+}
 
 func CommandPublish(request *models.CommandRequest) error {
 	cfg, err := config.Load()
@@ -20,23 +27,30 @@ func CommandPublish(request *models.CommandRequest) error {
 
 	command := strings.Split(request.Text, " ")
 	message := &models.Message{}
-	topic := ""
 	if command[0] == "output" {
-		topic = "output"
 		message = &models.Message{
 			ID:      uuid.New().String(),
-			Topic:   topic,
+			Topic:   "output",
 			Data:    outputCommand(command[1:]),
 			Channel: request.Channel,
 			Team:    request.Team,
 		}
 	}
 
-	if topic == "" || message == nil {
-		topic = "output"
+	if command[0] == "homelab" {
 		message = &models.Message{
 			ID:      uuid.New().String(),
-			Topic:   topic,
+			Topic:   "homelab",
+			Data:    homelabCommand(command[1:]),
+			Channel: request.Channel,
+			Team:    request.Team,
+		}
+	}
+
+	if message == nil || message.Data == "" {
+		message = &models.Message{
+			ID:      uuid.New().String(),
+			Topic:   "output",
 			Data:    fmt.Sprintf("Invalid command: %s", request.Text),
 			Channel: cfg.Mattermost.Channel,
 			Team:    cfg.Mattermost.Team,
@@ -45,7 +59,7 @@ func CommandPublish(request *models.CommandRequest) error {
 
 	r := rabbitmq_publisher.NewRabbitMQClient(&cfg.RabbitMQ)
 	defer r.Close()
-	if err := r.PublishMessage(topic, message); err != nil {
+	if err := r.PublishMessage(message.Topic, message); err != nil {
 		utils.LogMessage(utils.WARN, fmt.Sprintf("Failed to publish message: %v", err))
 	}
 	return nil
@@ -53,4 +67,16 @@ func CommandPublish(request *models.CommandRequest) error {
 
 func outputCommand(command []string) string {
 	return strings.Join(command, " ")
+}
+
+func homelabCommand(command []string) *Homelabcommand {
+	var message interface{}
+	msgStr := strings.Join(command[1:], " ")
+	if err := json.Unmarshal([]byte(msgStr), &message); err != nil {
+		message = msgStr
+	}
+	return &Homelabcommand{
+		Type:    command[0],
+		Message: message,
+	}
 }
