@@ -140,7 +140,7 @@ func (w *RabbitmqWorker) Handle_message(msg amqp.Delivery) {
 	if data.Channel == "" {
 		data.Channel = cfg.Mattermost.Channel
 	}
-	err = mm.MattermostSend(data.Team, data.Channel, data.Data)
+	err = mm.MattermostSend(data.Team, data.Channel, data.Data.(string))
 	if err != nil {
 		utils.LogMessage(utils.ERROR, fmt.Sprintf("Failed to send message: %s", err))
 	} else {
