@@ -45,7 +45,7 @@ func CommandPublish(request *models.CommandRequest) error {
 		message = &models.Message{
 			ID:      uuid.New().String(),
 			Topic:   "chat",
-			Data:    ChatCommand(command[1:]),
+			Data:    chatCommand(command[1:]),
 			Channel: request.Channel,
 			Team:    request.Team,
 		}
@@ -79,7 +79,7 @@ func homelabCommand(command []string) *models.Homelabcommand {
 	}
 }
 
-func ChatCommand(command []string) *models.Chatcommand {
+func chatCommand(command []string) *models.Chatcommand {
 	type_of_command := "chat"
 	if strings.HasPrefix(command[0], "get_") || strings.HasPrefix(command[0], "set_") ||
 		strings.HasPrefix(command[0], "image") || strings.HasPrefix(command[0], "list_") ||
