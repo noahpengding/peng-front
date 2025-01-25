@@ -48,13 +48,7 @@ func CommandPublish(request *models.CommandRequest) error {
 	}
 
 	if message == nil || message.Data == "" {
-		message = &models.Message{
-			ID:      uuid.New().String(),
-			Topic:   "output",
-			Data:    fmt.Sprintf("Invalid command: %s", request.Text),
-			Channel: cfg.Mattermost.Channel,
-			Team:    cfg.Mattermost.Team,
-		}
+		return fmt.Errorf("Invalid command: %s", request.Text)
 	}
 
 	r := rabbitmq_publisher.NewRabbitMQClient(&cfg.RabbitMQ)
