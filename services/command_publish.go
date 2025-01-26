@@ -13,12 +13,6 @@ import (
 	"strings"
 )
 
-type Homelabcommand struct {
-	Type    string      `json:"type" binding:"required"`
-	Message interface{} `json:"message" binding:"required"`
-	App     interface{} `json:"app"`
-}
-
 func CommandPublish(request *models.CommandRequest) error {
 	cfg, err := config.Load()
 	if err != nil {
@@ -47,14 +41,18 @@ func CommandPublish(request *models.CommandRequest) error {
 		}
 	}
 
-	if message == nil || message.Data == "" {
+	if command[0] == "chat" {
 		message = &models.Message{
 			ID:      uuid.New().String(),
-			Topic:   "output",
-			Data:    fmt.Sprintf("Invalid command: %s", request.Text),
-			Channel: cfg.Mattermost.Channel,
-			Team:    cfg.Mattermost.Team,
+			Topic:   "chat",
+			Data:    chatCommand(command[1:]),
+			Channel: request.Channel,
+			Team:    request.Team,
 		}
+	}
+
+	if message == nil || message.Data == "" {
+		return fmt.Errorf("Invalid command: %s", request.Text)
 	}
 
 	r := rabbitmq_publisher.NewRabbitMQClient(&cfg.RabbitMQ)
@@ -69,14 +67,42 @@ func outputCommand(command []string) string {
 	return strings.Join(command, " ")
 }
 
-func homelabCommand(command []string) *Homelabcommand {
+func homelabCommand(command []string) *models.Homelabcommand {
 	var message interface{}
 	msgStr := strings.Join(command[1:], " ")
 	if err := json.Unmarshal([]byte(msgStr), &message); err != nil {
 		message = msgStr
 	}
-	return &Homelabcommand{
+	return &models.Homelabcommand{
 		Type:    command[0],
 		Message: message,
+	}
+}
+
+func chatCommand(command []string) *models.Chatcommand {
+	type_of_command := "chat"
+	if strings.HasPrefix(command[0], "get_") || strings.HasPrefix(command[0], "set_") ||
+		strings.HasPrefix(command[0], "image") || strings.HasPrefix(command[0], "list_") ||
+		strings.HasPrefix(command[0], "end") || strings.HasPrefix(command[0], "chat") {
+		type_of_command = command[0]
+		command = command[1:]
+	}
+	operator := "openai"
+	if len(command) > 0 &&
+		(strings.HasPrefix(command[0], "gemini") || strings.HasPrefix(command[0], "claude") ||
+			strings.HasPrefix(command[0], "openai")) {
+		operator = command[0]
+		command = command[1:]
+	}
+	file_path := ""
+	if len(command) > 0 && strings.HasPrefix(command[0], "--file=") {
+		file_path = strings.Split(command[0], "=")[1]
+		command = command[1:]
+	}
+	return &models.Chatcommand{
+		Type:      type_of_command,
+		Operator:  operator,
+		File_path: file_path,
+		Message:   strings.Join(command, " "),
 	}
 }

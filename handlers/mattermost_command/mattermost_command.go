@@ -62,7 +62,7 @@ func process_command(command models.CommandRequest) models.CommandResponse {
 		}
 	}
 	return models.CommandResponse{
-		ResponseType: "in_channel",
+		ResponseType: "ephemeral",
 		Text:         fmt.Sprintf("Received command: %s; Text: %s", command.Command, command.Text),
 	}
 }
