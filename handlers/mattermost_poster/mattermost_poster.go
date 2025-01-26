@@ -2,6 +2,7 @@ package mattermost_poster
 
 import (
 	"peng-front/config"
+	"regexp"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -36,14 +37,12 @@ func (c *MattermostClient) sendMessage(channelID string, message string) error {
 }
 
 func process_message(message string) string {
-	message = strings.ReplaceAll(message, "\\\\", "\\")
 	message = strings.ReplaceAll(message, "\\$", "")
 	message = strings.ReplaceAll(message, "$", "")
-	message = strings.ReplaceAll(message, "\\[\n", "$")
-	message = strings.ReplaceAll(message, "\n   \\]\n", "$")
-	message = strings.ReplaceAll(message, "\\[", "$")
-	message = strings.ReplaceAll(message, "\\]", "$")
-	message = strings.ReplaceAll(message, "\\]\n", "$")
+	re := regexp.MustCompile(`\\\[\s*\n*`)
+	message = re.ReplaceAllString(message, "$")
+	re = regexp.MustCompile(`\n*\s*\\\]`)
+	message = re.ReplaceAllString(message, "$")
 	return message
 }
 
