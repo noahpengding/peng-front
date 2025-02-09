@@ -2,31 +2,35 @@ stages:
   - build
 
 variables:
-  APP_VERSION: 1.1
-  IMAGE_TAG: $REGISTRY_URL/peng-bot/peng-front
+  IMAGE_NAME: $CI_REGISTRY/peng-bot/peng-front
+  VERSION: v1.0.2
 
-before_script:
-  - echo "{\"auths\":{\"$REGISTRY_URL\":{\"username\":\"$REGISTRY_USER\",\"password\":\"$REGISTRY_PASS\"}}}" > /kaniko/.docker/config.json
-
-test-build:
+build-x64:
+  image: docker:23.0.6-dind
   stage: build
-  image:
-    name: gcr.io/kaniko-project/executor:debug
-    entrypoint: [""]
-  tags:
-    - kubernetes
   script:
-    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile Dockerfile --destination $IMAGE_TAG:test
+    - docker build --platform linux/amd64 -t $IMAGE_NAME:$VERSION .
+    - docker tag $IMAGE_NAME:$VERSION $IMAGE_NAME:latest
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker push $IMAGE_NAME:$VERSION
+    - docker push $IMAGE_NAME:latest
+  tags:
+    - docker
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "main"
 
-prod-build:
+build-arm:
+  image: docker:23.0.6-dind
   stage: build
-  image:
-    name: gcr.io/kaniko-project/executor:debug
-    entrypoint: [""]
-  tags:
-    - kubernetes
   script:
-    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile Dockerfile --destination $IMAGE_TAG:$APP_VERSION --destination $IMAGE_TAG:latest
+    - docker build --platform linux/arm64 -t $IMAGE_NAME:$VERSION-arm .
+    - docker tag $IMAGE_NAME:$VERSION $IMAGE_NAME:latest-arm
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker push $IMAGE_NAME:$VERSION-arm
+    - docker push $IMAGE_NAME:latest-arm
+  tags:
+    - docker-arm
   only:
     variables:
       - $CI_COMMIT_BRANCH == "main"
