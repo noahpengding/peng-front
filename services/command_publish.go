@@ -83,14 +83,15 @@ func chatCommand(command []string) *models.Chatcommand {
 	type_of_command := "chat"
 	if strings.HasPrefix(command[0], "get_") || strings.HasPrefix(command[0], "set_") ||
 		strings.HasPrefix(command[0], "image") || strings.HasPrefix(command[0], "list_") ||
-		strings.HasPrefix(command[0], "end") || strings.HasPrefix(command[0], "chat") {
+		strings.HasPrefix(command[0], "end") || strings.HasPrefix(command[0], "chat") ||
+		strings.HasPrefix(command[0], "index_") {
 		type_of_command = command[0]
 		command = command[1:]
 	}
 	operator := "openai"
 	if len(command) > 0 &&
 		(strings.HasPrefix(command[0], "gemini") || strings.HasPrefix(command[0], "claude") ||
-			strings.HasPrefix(command[0], "openai")) {
+			strings.HasPrefix(command[0], "openai")) || strings.HasPrefix(command[0], "rag") {
 		operator = command[0]
 		command = command[1:]
 	}
