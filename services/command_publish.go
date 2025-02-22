@@ -26,6 +26,7 @@ func CommandPublish(request *models.CommandRequest) error {
 			ID:      uuid.New().String(),
 			Topic:   "output",
 			Data:    outputCommand(command[1:]),
+			User:    request.User,
 			Channel: request.Channel,
 			Team:    request.Team,
 		}
@@ -36,6 +37,7 @@ func CommandPublish(request *models.CommandRequest) error {
 			ID:      uuid.New().String(),
 			Topic:   "homelab",
 			Data:    homelabCommand(command[1:]),
+			User:    request.User,
 			Channel: request.Channel,
 			Team:    request.Team,
 		}
@@ -46,6 +48,7 @@ func CommandPublish(request *models.CommandRequest) error {
 			ID:      uuid.New().String(),
 			Topic:   "chat",
 			Data:    chatCommand(command[1:]),
+			User:    request.User,
 			Channel: request.Channel,
 			Team:    request.Team,
 		}
@@ -101,6 +104,7 @@ func chatCommand(command []string) *models.Chatcommand {
 		command = command[1:]
 	}
 	return &models.Chatcommand{
+		Sources:   "mattermost",
 		Type:      type_of_command,
 		Operator:  operator,
 		File_path: file_path,
