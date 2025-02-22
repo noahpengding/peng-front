@@ -43,21 +43,16 @@ func NewRabbitmqWorker(config *config.RabbitMQConfig, topic string, groupID stri
 	if err != nil {
 		utils.LogMessage(utils.ERROR, fmt.Sprintf("Declared exchange %s with error %s", topic, err))
 	}
-	query_name := fmt.Sprintf("%s.%s", topic, groupID)
 	q, err := ch.QueueDeclare(
-		query_name, // name
-		true,       // durable
-		false,      // delete when unused
-		false,      // exclusive
-		false,      // no-wait
-		amqp.Table{
-			"x-queue-type":           "quorum",
-			"x-consumer-group":       groupID,
-			"x-queue-leader-locator": "least-leaders",
-		},
+		topic, // name
+		true,  // durable
+		false, // delete when unused
+		false, // exclusive
+		false, // no-wait
+		nil,   // arguments
 	)
 	if err != nil {
-		utils.LogMessage(utils.ERROR, fmt.Sprintf("Declared queue %s with error %s", query_name, err))
+		utils.LogMessage(utils.ERROR, fmt.Sprintf("Declared queue %s with error %s", topic, err))
 	}
 	err = ch.QueueBind(
 		q.Name, // queue name
@@ -83,18 +78,18 @@ func NewRabbitmqWorker(config *config.RabbitMQConfig, topic string, groupID stri
 
 func (w *RabbitmqWorker) Start() error {
 	msgs, err := w.channel.Consume(
-		fmt.Sprintf("%s.%s", w.topic, w.groupID), // queue
-		"",                                       // consumer
-		false,                                    // auto-ack
-		false,                                    // exclusive
-		false,                                    // no-local
-		false,                                    // no-wait
-		nil,                                      // arguments
+		w.topic, // queue
+		"",      // consumer
+		false,   // auto-ack
+		false,   // exclusive
+		false,   // no-local
+		false,   // no-wait
+		nil,     // arguments
 	)
 	if err != nil {
 		utils.LogMessage(utils.ERROR, fmt.Sprintf("Failed to register a consumer: %s", err))
 	} else {
-		utils.LogMessage(utils.INFO, fmt.Sprintf(" [*] Waiting for messages in %s.%s To exit press CTRL+C", w.topic, w.groupID))
+		utils.LogMessage(utils.INFO, fmt.Sprintf(" [*] Waiting for messages in %s To exit press CTRL+C", w.topic))
 	}
 
 	var forever chan struct{}
@@ -102,7 +97,7 @@ func (w *RabbitmqWorker) Start() error {
 		for {
 			select {
 			case <-w.ctx.Done():
-				utils.LogMessage(utils.INFO, fmt.Sprintf(" [*] Worker stopped in %s.%s", w.topic, w.groupID))
+				utils.LogMessage(utils.INFO, fmt.Sprintf(" [*] Worker stopped in %s", w.topic))
 				return
 			case msg, ok := <-msgs:
 				if !ok {
@@ -140,6 +135,7 @@ func (w *RabbitmqWorker) Handle_message(msg amqp.Delivery) {
 	if data.Channel == "" {
 		data.Channel = cfg.Mattermost.Channel
 	}
+	utils.LogMessage(utils.DEBUG, fmt.Sprintf("Team: %s, Channel: %s, Data: %s", data.Team, data.Channel, data.Data))
 	err = mm.MattermostSend(data.Team, data.Channel, data.Data.(string))
 	if err != nil {
 		utils.LogMessage(utils.ERROR, fmt.Sprintf("Failed to send message: %s", err))
