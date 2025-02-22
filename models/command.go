@@ -20,6 +20,7 @@ type Homelabcommand struct {
 }
 
 type Chatcommand struct {
+	Sources   string `json:"sources" binding:"required"`
 	Type      string `json:"type" binding:"required"`
 	Operator  string `json:"operator" binding:"required"`
 	File_path string `json:"file_path"`
